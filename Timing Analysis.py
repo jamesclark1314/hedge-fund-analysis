@@ -55,23 +55,27 @@ def sectfunc(ticker):
     df = df.merge(sector[ticker], how = 'left', 
                                   left_index = True, right_index = True)
     
-    sns.regplot(x = ticker + 'Tick', y = ticker, data = df)
+    sns.regplot(x = ticker, y = ticker + 'Tick', data = df)
 
-# sectfunc('XLB')
+sectfunc('XLU')
 
 # Style function
 def stylefunc(ticker):
-    df1 = data.loc[data['Style'] == ticker]
-    df1 = df1.groupby(df1.index)['AbsSecRet'].mean()
-    df1 = pd.DataFrame(df1)
-    df1.columns = [ticker + 'Tick']
+    
+    df = data.loc[data['Style'] == ticker]
+    df = df.groupby(df.index)['AbsSecRet'].mean()
+    df = pd.DataFrame(df)
+    df.columns = [ticker + 'Tick']
         
-    df1 = df1.merge(style[ticker], how = 'left', 
+    df = df.merge(style[ticker], how = 'left', 
                                   left_index = True, right_index = True)
     
-    sns.regplot(x = ticker + 'Tick', y = ticker, data = df1)
+    # df[f"{df.columns[0]}"] = np.log(df[f"{df.columns[0]}"])
+    # df[f"{df.columns[1]}"] = np.log(df[f"{df.columns[1]}"])
     
-# stylefunc('SPYV')
+    sns.regplot(x = ticker, y = ticker + 'Tick', data = df)
+    
+# stylefunc('VOE')
 
 # Sort by mcap
 data['Type'] = np.where(data['mcap'] >= 1000000, 'SPY', 
@@ -87,6 +91,6 @@ def sizefunc(ticker):
     df = df.merge(style[ticker], how = 'left', 
                                   left_index = True, right_index = True)
         
-    sns.regplot(x = ticker + 'Tick', y = ticker, data = df)
+    sns.regplot(x = ticker, y = ticker + 'Tick', data = df)
     
-sizefunc('SLY')
+# sizefunc('SLY')
