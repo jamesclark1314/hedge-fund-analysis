@@ -257,3 +257,51 @@ try2 = smf.ols(
 try3 = smf.ols(
     'Q("ret2") ~ Q("VOT") + Q("SLYG") + Q("VOE") + Q("SPYV") + Q("SLY") + Q("SPY")'
     , data = spdr).fit()
+
+# Adjust for 2% annual management fee
+fees = all_rets['ret2'] - (0.02/252)
+
+# fees stats
+fee_mean = fees.mean() * 252
+fee_stdev = fees.std() * math.sqrt(252)
+fee_sharpe = fee_mean / fee_stdev
+
+# Merge fees into all_rets
+fees = pd.DataFrame(fees)
+fees.columns = ['Fee Ret']
+all_rets = all_rets.merge(fees, how = 'left', 
+                                  left_index = True, right_index = True)
+
+# Resample monthly
+all_rets_month = all_rets.resample('M').agg(lambda r: (r + 1).prod()- 1)
+
+# Plot fees vs spy
+all_rets_month.plot(y = ['Fee Ret', 'Mkt Ret'])
+plt.show()
+
+# High water mark
+# all_rets['HWM'] = all_rets['ret2 cum ret'].cummax()
+
+# Function to slice date range
+def imsmart(start, end):
+    
+    global resamp
+    resamp = all_rets[start:end]
+    resamp['HWM'] = resamp['ret2 cum ret'].cummax()
+    return resamp
+    
+a = imsmart('2010-05-03','2010-12-31')
+ab = imsmart('2011-01-01','2011-12-31')
+abc = imsmart('2012-01-01','2012-12-31')
+abcd = imsmart('2013-01-01','2013-12-31')
+
+# Calculate 20% fee above HWM
+all_rets['Final Ret'] = all_rets['Fee Ret'] * 0.8
+
+# Cumulative returns
+all_rets['Final Ret cum ret'] = (1 + all_rets['Fee Ret']).cumprod() - 1
+
+# Plot new cumulative returns
+all_rets.plot(y = ['Mkt Cum Ret', 'Final Ret cum ret', 'ret2 cum ret'])
+plt.title('Cumulative Returns')
+plt.show()
