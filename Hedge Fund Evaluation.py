@@ -16,6 +16,7 @@ import seaborn as sns
 portfolio = pd.read_csv('Portfolio_2021.csv')
 stocks = pd.read_csv('Stocks_2021.csv')
 spdr = pd.read_csv('SPDR.csv')
+ff = pd.read_csv('FF.csv')
 
 #Collect daily returns of SPDRs from CRSP.
 spdr['Datetime'] = spdr['date'].apply(lambda x: pd.to_datetime(str(x)))
@@ -38,6 +39,13 @@ del portfolio['DATE']
 stocks['Datetime'] = pd.to_datetime(stocks['DATE'])
 stocks = stocks.set_index(['Datetime'])
 del stocks['DATE']
+
+ff['Datetime'] = ff['date'].apply(lambda x: pd.to_datetime(str(x), 
+                                  format = '%Y%m%d'))
+ff = ff.set_index(['Datetime'])
+del ff['date']
+
+ff.columns = ['Full Mkt']
 
 # Import ETF historical data
 mkt = yf.Ticker('SPY')
@@ -107,6 +115,8 @@ all_rets = all_rets.merge(russ_val['Russ Val Ret'], how = 'left',
                                   left_index = True, right_index = True)
 all_rets = all_rets.merge(russ_grow['Russ Grow Ret'], how = 'left', 
                                   left_index = True, right_index = True)
+all_rets = all_rets.merge(ff['Full Mkt'], how = 'left', 
+                                  left_index = True, right_index = True)
 
 # Adding ret2 and ret3 to spdr dataframe
 spdr = spdr.merge(all_rets['ret2'], how = 'left', 
@@ -119,6 +129,7 @@ all_rets['Mkt Cum Ret'] = (1 + all_rets['Mkt Ret']).cumprod() - 1
 all_rets['ret2 cum ret'] = (1 + all_rets['ret2']).cumprod() - 1
 all_rets['ret3 cum ret'] = (1 + all_rets['ret3']).cumprod() - 1
 all_rets['Russ Cum Ret'] = (1 + all_rets['Russ Ret']).cumprod() - 1
+all_rets['Full Mkt cum ret'] = (1 + all_rets['Russ Ret']).cumprod() - 1
 
 # Plot the cumulative return series 
 all_rets.plot(y = ['Mkt Cum Ret', 'ret2 cum ret', 'ret3 cum ret', 'Russ Cum Ret'])
@@ -302,6 +313,6 @@ all_rets['Final Ret'] = all_rets['Fee Ret'] * 0.8
 all_rets['Final Ret cum ret'] = (1 + all_rets['Fee Ret']).cumprod() - 1
 
 # Plot new cumulative returns
-all_rets.plot(y = ['Mkt Cum Ret', 'Final Ret cum ret', 'ret2 cum ret'])
+all_rets.plot(y = ['Final Ret cum ret', 'ret2 cum ret', 'Full Mkt cum ret'])
 plt.title('Cumulative Returns')
 plt.show()
