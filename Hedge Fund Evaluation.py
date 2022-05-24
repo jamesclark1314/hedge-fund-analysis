@@ -310,9 +310,20 @@ abcd = imsmart('2013-01-01','2013-12-31')
 all_rets['Final Ret'] = all_rets['Fee Ret'] * 0.8
 
 # Cumulative returns
-all_rets['Final Ret cum ret'] = (1 + all_rets['Fee Ret']).cumprod() - 1
+all_rets['Fee Adjusted Ret'] = (1 + all_rets['Final Ret']).cumprod() - 1
 
 # Plot new cumulative returns
-all_rets.plot(y = ['Final Ret cum ret', 'ret2 cum ret', 'Full Mkt cum ret'])
+all_rets.plot(y = ['Fee Adjusted Ret', 'ret2 cum ret', 'Full Mkt cum ret'])
 plt.title('Cumulative Returns')
 plt.show()
+
+# New stats
+fee_mean = all_rets['Final Ret'].mean() * 252
+ffmkt_mean = all_rets['Full Mkt'].mean() * 252
+
+fee_stdev = all_rets['Final Ret'].std() * math.sqrt(252)
+ffmkt_stdev = all_rets['Full Mkt'].std() * math.sqrt(252)
+
+fee_sharpe = fee_mean / fee_stdev
+ffmkt_sharpe = ffmkt_mean / ffmkt_stdev
+
