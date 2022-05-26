@@ -12,6 +12,7 @@ import math
 import yfinance as yf
 import statsmodels.formula.api as smf
 import seaborn as sns
+import statsmodels.api as sm
 
 portfolio = pd.read_csv('Portfolio_2021.csv')
 stocks = pd.read_csv('Stocks_2021.csv')
@@ -327,3 +328,22 @@ ffmkt_stdev = all_rets['Full Mkt'].std() * math.sqrt(252)
 fee_sharpe = fee_mean / fee_stdev
 ffmkt_sharpe = ffmkt_mean / ffmkt_stdev
 
+# Calculate information ratio post fee
+x = all_rets['Full Mkt'].loc['2010-05-03':'2014-01-24']
+y = all_rets['Final Ret'].loc['2010-05-03':'2014-01-24']
+x1 = sm.add_constant(x)
+reg = sm.OLS(y, x1).fit()
+reg.summary()
+predict_vals = reg.predict()
+resid = all_rets['Final Ret'].loc['2010-05-03':'2014-01-24'] - predict_vals
+ir_post = reg.params['const'] / resid.std()
+
+# Calculate information ratio pre fee
+x_pre = all_rets['Full Mkt'].loc['2010-05-03':'2014-01-24']
+y_pre = all_rets['ret2'].loc['2010-05-03':'2014-01-24']
+x1_pre = sm.add_constant(x_pre)
+reg_pre = sm.OLS(y_pre, x1_pre).fit()
+reg_pre.summary()
+predict_vals_pre = reg_pre.predict()
+resid_pre = all_rets['ret2'].loc['2010-05-03':'2014-01-24'] - predict_vals_pre
+ir_pre = reg_pre.params['const'] / resid_pre.std()
